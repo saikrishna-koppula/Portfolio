@@ -94,6 +94,9 @@
     select('body').classList.toggle('mobile-nav-active')
     this.classList.toggle('bi-list')
     this.classList.toggle('bi-x')
+    const expanded = select('body').classList.contains('mobile-nav-active');
+    this.setAttribute('aria-expanded', String(expanded));
+    this.setAttribute('aria-label', expanded ? 'Close navigation' : 'Open navigation');
   })
 
   /**
@@ -109,6 +112,8 @@
         let navbarToggle = select('.mobile-nav-toggle')
         navbarToggle.classList.toggle('bi-list')
         navbarToggle.classList.toggle('bi-x')
+        navbarToggle.setAttribute('aria-expanded', 'false');
+        navbarToggle.setAttribute('aria-label', 'Open navigation');
       }
       scrollto(this.hash)
     }
@@ -273,3 +278,59 @@
   });
 
 })()
+// Accessible project dialog, with the image lightbox layered above it.
+(() => {
+  const overlay = document.getElementById('projectsModalContainer');
+  const panel = overlay.querySelector('.projects-modal');
+  const trigger = document.getElementById('projectsShowMoreBtn');
+  const close = document.getElementById('projectsCloseBtn');
+  let open = false;
+  function dismiss() {
+    open = false;
+    overlay.style.display = 'none';
+    document.body.classList.remove('no-scroll');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.focus({ preventScroll: true });
+  }
+  trigger.addEventListener('click', () => {
+    open = true;
+    overlay.style.display = 'flex';
+    document.body.classList.add('no-scroll');
+    trigger.setAttribute('aria-expanded', 'true');
+    panel.focus();
+  });
+  close.addEventListener('click', dismiss);
+  overlay.addEventListener('click', event => {
+    if (event.target === overlay) dismiss();
+  });
+  document.addEventListener('keydown', event => {
+    // Let GLightbox handle Escape and Tab while an image is enlarged.
+    if (document.getElementById('glightbox-body')) return;
+    if (!open) {
+      if (event.key === 'Escape' && document.body.classList.contains('mobile-nav-active')) {
+        const toggle = document.querySelector('.mobile-nav-toggle');
+        toggle.click();
+        toggle.focus();
+      }
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      dismiss();
+    }
+    if (event.key === 'Tab') {
+      const items = [...panel.querySelectorAll('a[href], button, [tabindex="0"]')]
+        .filter(element => element.getClientRects().length && !element.disabled);
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
+    }
+  });
+  document.addEventListener('focusin', event => {
+    if (open && !document.getElementById('glightbox-body') && !panel.contains(event.target)) panel.focus();
+  });
+})();

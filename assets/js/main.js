@@ -189,10 +189,29 @@
   });
 
   /**
-   * Initiate portfolio lightbox 
+   * Open project images at full resolution and return focus to the thumbnail.
    */
+  let lightboxTrigger;
+  on('click', '.portfolio-lightbox', function () {
+    lightboxTrigger = this;
+  }, true);
+
   const portfolioLightbox = GLightbox({
-    selector: '.portfolio-lightbox'
+    selector: '.portfolio-lightbox',
+    preload: false
+  });
+
+  portfolioLightbox.on('open', () => {
+    const dialog = select('#glightbox-body');
+    dialog.setAttribute('aria-label', 'Project image');
+    dialog.setAttribute('aria-modal', 'true');
+    const closeButton = dialog.querySelector('.gclose');
+    closeButton.classList.add('focused');
+    closeButton.focus();
+  });
+
+  portfolioLightbox.on('close', () => {
+    lightboxTrigger?.focus({ preventScroll: true });
   });
 
   /**

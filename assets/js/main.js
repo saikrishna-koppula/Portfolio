@@ -277,7 +277,7 @@
     })
   });
 
-})()
+})();
 // Accessible project dialog, with the image lightbox layered above it.
 (() => {
   const overlay = document.getElementById('projectsModalContainer');
